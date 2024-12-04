@@ -49,8 +49,7 @@ public class SearchCompletionPlugin: NSObject, FlutterPlugin {
                       subtitle: subtitle
                     )
                     result([
-                        "name": title,
-                        "address": subtitle,
+                        "name": "\(title), \(subtitle)",
                         "latitude": coordinates?.latitude as? Double,
                         "longitude": coordinates?.longitude as? Double
                     ])

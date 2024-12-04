@@ -65,8 +65,9 @@ class SearchCompletionPlugin: FlutterPlugin, MethodChannel.MethodCallHandler {
             }
             "getPlaceData" -> {
                 val placeId = call.argument<String>("placeId")
+                val placeName = "${call.argument<String>("title")}, ${call.argument<String>("subtitle")}"
                 if (placeId != null) {
-                    getPlaceDetails(placeId, result)
+                    getPlaceDetails(placeId, placeName, result)
                 }
             }
             else -> result.notImplemented()
@@ -96,8 +97,12 @@ class SearchCompletionPlugin: FlutterPlugin, MethodChannel.MethodCallHandler {
             }
     }
 
-    private fun getPlaceDetails(placeId: String, result: MethodChannel.Result) {
-        val placeFields = listOf(Place.Field.LAT_LNG, Place.Field.NAME, Place.Field.ADDRESS)
+    private fun getPlaceDetails(
+        placeId: String,
+        placeName: String,
+        result: MethodChannel.Result
+    ) {
+        val placeFields = listOf(Place.Field.LAT_LNG)
         val request = com.google.android.libraries.places.api.net.FetchPlaceRequest
             .builder(placeId, placeFields)
             .setSessionToken(autocompleteSessionToken)
@@ -109,8 +114,7 @@ class SearchCompletionPlugin: FlutterPlugin, MethodChannel.MethodCallHandler {
                 val latLng = place.latLng
                 if (latLng != null) {
                     result.success(mapOf(
-                        "name" to place.name,
-                        "address" to place.address,
+                        "name" to placeName,
                         "latitude" to latLng.latitude,
                         "longitude" to latLng.longitude
                     ))
