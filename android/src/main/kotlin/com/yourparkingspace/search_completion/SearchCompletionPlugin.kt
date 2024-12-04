@@ -18,6 +18,7 @@ class SearchCompletionPlugin: FlutterPlugin, MethodChannel.MethodCallHandler {
     private lateinit var context: Context
     private lateinit var placesClient: PlacesClient
     private var eventSink: EventChannel.EventSink? = null
+    private lateinit var autocompleteSessionToken : AutoCompleteSessionToken
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         context = binding.applicationContext
@@ -43,6 +44,7 @@ class SearchCompletionPlugin: FlutterPlugin, MethodChannel.MethodCallHandler {
                 if (apiKey != null) {
                     Places.initialize(context, apiKey)
                     placesClient = Places.createClient(context)
+                    autocompleteSessionToken = AutocompleteSessionToken.newInstance()
                     result.success(null)
                 } else {
                     result.error("MISSING_API_KEY", "Google Places API key is required", null)
@@ -67,6 +69,8 @@ class SearchCompletionPlugin: FlutterPlugin, MethodChannel.MethodCallHandler {
 
     private fun performSearch(query: String) {
         val request = FindAutocompletePredictionsRequest.builder()
+            .setCountries(listOf("uk", "ie"))
+            .setSessionToken(autocompleteSessionToken)
             .setQuery(query)
             .build()
 
@@ -87,9 +91,10 @@ class SearchCompletionPlugin: FlutterPlugin, MethodChannel.MethodCallHandler {
     }
 
     private fun getPlaceDetails(placeId: String, result: MethodChannel.Result) {
-        val placeFields = listOf(Place.Field.LAT_LNG)
+        val placeFields = listOf(Place.Field.LAT_LNG, Place.Field.NAME, Place.Field.ADDRESS)
         val request = com.google.android.libraries.places.api.net.FetchPlaceRequest
             .builder(placeId, placeFields)
+            .setSessionToken(autocompleteSessionToken)
             .build()
 
         placesClient.fetchPlace(request)
