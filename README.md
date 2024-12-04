@@ -27,7 +27,7 @@ Required Android permissions in manifest:
 
 ```
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.search_completion">
+    package="com.yourparkingspace.search_completion">
     <uses-permission android:name="android.permission.INTERNET"/>
 </manifest>
 

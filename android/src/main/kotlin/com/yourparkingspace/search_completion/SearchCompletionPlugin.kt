@@ -3,6 +3,7 @@ package com.yourparkingspace.search_completion
 import android.content.Context
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.AutocompletePrediction
+import com.google.android.libraries.places.api.model.AutocompleteSessionToken
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import com.google.android.libraries.places.api.net.PlacesClient
@@ -18,7 +19,7 @@ class SearchCompletionPlugin: FlutterPlugin, MethodChannel.MethodCallHandler {
     private lateinit var context: Context
     private lateinit var placesClient: PlacesClient
     private var eventSink: EventChannel.EventSink? = null
-    private lateinit var autocompleteSessionToken : AutoCompleteSessionToken
+    private lateinit var autocompleteSessionToken : AutocompleteSessionToken
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         context = binding.applicationContext
