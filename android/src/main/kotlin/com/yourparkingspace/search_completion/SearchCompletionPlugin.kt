@@ -44,6 +44,11 @@ class SearchCompletionPlugin: FlutterPlugin, MethodChannel.MethodCallHandler {
                 if (apiKey != null) {
                     Places.initialize(context, apiKey)
                     placesClient = Places.createClient(context)
+
+                    // Note: Ensure a new session token is obtained by the search_completion plugin for
+                    // Google Places API cost efficiency, else we would get charged for each
+                    // autocomplete request (every time the search term updates) and then once again
+                    // when we fetch place details, instead of just once for the combined session
                     autocompleteSessionToken = AutocompleteSessionToken.newInstance()
                     result.success(null)
                 } else {
@@ -57,7 +62,7 @@ class SearchCompletionPlugin: FlutterPlugin, MethodChannel.MethodCallHandler {
                     result.success(null)
                 }
             }
-            "getCoordinates" -> {
+            "getPlaceData" -> {
                 val placeId = call.argument<String>("placeId")
                 if (placeId != null) {
                     getPlaceDetails(placeId, result)
@@ -103,6 +108,8 @@ class SearchCompletionPlugin: FlutterPlugin, MethodChannel.MethodCallHandler {
                 val latLng = place.latLng
                 if (latLng != null) {
                     result.success(mapOf(
+                        "name" to place.name,
+                        "address" to place.address,
                         "latitude" to latLng.latitude,
                         "longitude" to latLng.longitude
                     ))

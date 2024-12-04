@@ -38,7 +38,7 @@ public class SearchCompletionPlugin: NSObject, FlutterPlugin {
                 searchManager?.searchTerm = searchTerm
                 result(nil)
             }
-        case "getCoordinates":
+        case "getPlaceData":
             if let args = call.arguments as? [String: Any],
               let title: String = args["title"] as? String,
               let subtitle: String = args["subtitle"] as? String,
@@ -49,6 +49,8 @@ public class SearchCompletionPlugin: NSObject, FlutterPlugin {
                       subtitle: subtitle
                     )
                     result([
+                        "name": title,
+                        "address": subtitle,
                         "latitude": coordinates?.latitude as? Double,
                         "longitude": coordinates?.longitude as? Double
                     ])
