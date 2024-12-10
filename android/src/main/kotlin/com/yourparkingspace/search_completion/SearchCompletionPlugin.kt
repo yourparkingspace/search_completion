@@ -3,6 +3,7 @@ package com.yourparkingspace.search_completion
 import android.content.Context
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.AutocompletePrediction
+import com.google.android.libraries.places.api.model.AutocompleteSessionToken
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import com.google.android.libraries.places.api.net.PlacesClient
@@ -18,6 +19,7 @@ class SearchCompletionPlugin: FlutterPlugin, MethodChannel.MethodCallHandler {
     private lateinit var context: Context
     private lateinit var placesClient: PlacesClient
     private var eventSink: EventChannel.EventSink? = null
+    private lateinit var autocompleteSessionToken : AutocompleteSessionToken
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         context = binding.applicationContext
@@ -43,6 +45,15 @@ class SearchCompletionPlugin: FlutterPlugin, MethodChannel.MethodCallHandler {
                 if (apiKey != null) {
                     Places.initialize(context, apiKey)
                     placesClient = Places.createClient(context)
+
+                    // Note: Google Places API is billed per session. Ensure a new session token is
+                    // obtained by the search_completion plugin when the search is initialises
+                    // (e.g. when the search screen opens) for cost efficiency,
+                    // If session token is not included each autocomplete request (on every
+                    // search term update) will count as new session and then another new session
+                    // when we fetch place details, resulting in several sessions instead of
+                    // just one combined session for a place search.
+                    autocompleteSessionToken = AutocompleteSessionToken.newInstance()
                     result.success(null)
                 } else {
                     result.error("MISSING_API_KEY", "Google Places API key is required", null)
@@ -55,10 +66,11 @@ class SearchCompletionPlugin: FlutterPlugin, MethodChannel.MethodCallHandler {
                     result.success(null)
                 }
             }
-            "getCoordinates" -> {
+            "getPlaceData" -> {
                 val placeId = call.argument<String>("placeId")
+                val placeName = "${call.argument<String>("title")}, ${call.argument<String>("subtitle")}"
                 if (placeId != null) {
-                    getPlaceDetails(placeId, result)
+                    getPlaceDetails(placeId, placeName, result)
                 }
             }
             else -> result.notImplemented()
@@ -67,6 +79,8 @@ class SearchCompletionPlugin: FlutterPlugin, MethodChannel.MethodCallHandler {
 
     private fun performSearch(query: String) {
         val request = FindAutocompletePredictionsRequest.builder()
+            .setCountries(listOf("uk", "ie"))
+            .setSessionToken(autocompleteSessionToken)
             .setQuery(query)
             .build()
 
@@ -86,10 +100,15 @@ class SearchCompletionPlugin: FlutterPlugin, MethodChannel.MethodCallHandler {
             }
     }
 
-    private fun getPlaceDetails(placeId: String, result: MethodChannel.Result) {
+    private fun getPlaceDetails(
+        placeId: String,
+        placeName: String,
+        result: MethodChannel.Result
+    ) {
         val placeFields = listOf(Place.Field.LAT_LNG)
         val request = com.google.android.libraries.places.api.net.FetchPlaceRequest
             .builder(placeId, placeFields)
+            .setSessionToken(autocompleteSessionToken)
             .build()
 
         placesClient.fetchPlace(request)
@@ -98,6 +117,7 @@ class SearchCompletionPlugin: FlutterPlugin, MethodChannel.MethodCallHandler {
                 val latLng = place.latLng
                 if (latLng != null) {
                     result.success(mapOf(
+                        "name" to placeName,
                         "latitude" to latLng.latitude,
                         "longitude" to latLng.longitude
                     ))

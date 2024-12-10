@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.search_completion">
+    package="com.yourparkingspace.search_completion">
     
     <!-- Required permissions for Google Places API -->
     <uses-permission android:name="android.permission.INTERNET"/>
