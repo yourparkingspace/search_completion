@@ -46,10 +46,13 @@ class SearchCompletionPlugin: FlutterPlugin, MethodChannel.MethodCallHandler {
                     Places.initialize(context, apiKey)
                     placesClient = Places.createClient(context)
 
-                    // Note: Ensure a new session token is obtained by the search_completion plugin for
-                    // Google Places API cost efficiency, else we would get charged for each
-                    // autocomplete request (every time the search term updates) and then once again
-                    // when we fetch place details, instead of just once for the combined session
+                    // Note: Google Places API is billed per session. Ensure a new session token is
+                    // obtained by the search_completion plugin when the search is initialises
+                    // (e.g. when the search screen opens) for cost efficiency,
+                    // If session token is not included each autocomplete request (on every
+                    // search term update) will count as new session and then another new session
+                    // when we fetch place details, resulting in several sessions instead of
+                    // just one combined session for a place search.
                     autocompleteSessionToken = AutocompleteSessionToken.newInstance()
                     result.success(null)
                 } else {
