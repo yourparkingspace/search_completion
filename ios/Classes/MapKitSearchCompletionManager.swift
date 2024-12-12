@@ -2,7 +2,6 @@ import Combine
 import MapKit
 
 protocol SearchCompletionManagerProtocol {
-    var region: MKCoordinateRegion? { get set }
     var searchTerm: String { get set }
     var autoCompletePublisher: AnyPublisher<[any AutoCompletedSearchResult], Never> { get }
     func returnCoordinatesFromSearchResult(title: String?, subtitle: String?) async -> CLLocationCoordinate2D? 
@@ -17,7 +16,7 @@ protocol AutoCompletedSearchResult: Hashable {
 final class MapKitSearchCompletionManager: NSObject, SearchCompletionManagerProtocol {
     
     var autoCompletePublisher: AnyPublisher<[any AutoCompletedSearchResult], Never>
-    var region: MKCoordinateRegion?
+    
     var searchTerm: String {
         didSet {
             searchCompleter.queryFragment = searchTerm
@@ -27,6 +26,7 @@ final class MapKitSearchCompletionManager: NSObject, SearchCompletionManagerProt
     private let searchCompleter: MKLocalSearchCompleter
     private let autoCompleteSubject = PassthroughSubject<[any AutoCompletedSearchResult], Never>()
     private var autoCompleteResults: [MKLocalSearchCompletion] = []
+    private var region: MKCoordinateRegion?
 
     init(
         region: MKCoordinateRegion? = nil,

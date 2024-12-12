@@ -63,8 +63,7 @@ public class SearchCompletionPlugin: NSObject, FlutterPlugin {
     }
     
     private func initializeSearchManager(searchRegion: String? = nil) {
-        searchManager = MapKitSearchCompletionManager()
-        searchManager?.region = MapKitGeographicRegion.searchRegion(from: searchRegion)
+        searchManager = MapKitSearchCompletionManager(region: MapKitGeographicRegion.searchRegion(from: searchRegion))
         searchManager?.autoCompletePublisher
             .sink { [weak self] completions in
                 let results = completions.map { completion in
