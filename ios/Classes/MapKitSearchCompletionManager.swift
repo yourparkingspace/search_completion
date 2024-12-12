@@ -1,5 +1,5 @@
 import Combine
-import Flutter
+import os.log
 import MapKit
 
 protocol SearchCompletionManagerProtocol {
@@ -41,7 +41,7 @@ final class MapKitSearchCompletionManager: NSObject, SearchCompletionManagerProt
         super.init()
         
         self.searchCompleter.delegate = self
-        FlutterLog.info("Search completion manager initialized with region code: \(String(describing: region))")
+        os_log("Search completion manager initialized with region code: %@", log: .default, type: .debug, String(describing: region))
     }
     
     func returnCoordinatesFromSearchResult(title: String?, subtitle: String?) async -> CLLocationCoordinate2D?  {
