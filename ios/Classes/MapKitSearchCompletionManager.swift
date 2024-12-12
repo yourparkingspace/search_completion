@@ -40,6 +40,7 @@ final class MapKitSearchCompletionManager: NSObject, SearchCompletionManagerProt
         super.init()
         
         self.searchCompleter.delegate = self
+        print("Search completion manager initialized with region code: \(String(describing: region))") 
     }
     
     func returnCoordinatesFromSearchResult(title: String?, subtitle: String?) async -> CLLocationCoordinate2D?  {
