@@ -12,16 +12,16 @@ public class SearchCompletionPlugin: NSObject, FlutterPlugin {
 
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(
-          name: "search_completion",
-          binaryMessenger: registrar.messenger()
+            name: "search_completion",
+            binaryMessenger: registrar.messenger()
         )
         let instance = SearchCompletionPlugin()
         instance.registrar = registrar
         registrar.addMethodCallDelegate(instance, channel: channel)
 
         let eventChannel = FlutterEventChannel(
-          name: "search_completion_events",
-          binaryMessenger: registrar.messenger()
+            name: "search_completion_events",
+            binaryMessenger: registrar.messenger()
         )
     
         eventChannel.setStreamHandler(instance)
@@ -30,23 +30,25 @@ public class SearchCompletionPlugin: NSObject, FlutterPlugin {
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
         case "initialize":
-            initializeSearchManager()
+            let args = call.arguments as? [String: Any]
+            let searchRegion = args?["mapKitSearchRegionCode"] as? String
+            initializeSearchManager(searchRegion: searchRegion ?? "")
             result(nil)
         case "updateSearchTerm":
             if let args = call.arguments as? [String: Any],
-              let searchTerm = args["searchTerm"] as? String {
+            let searchTerm = args["searchTerm"] as? String {
                 searchManager?.searchTerm = searchTerm
                 result(nil)
             }
         case "getPlaceData":
             if let args = call.arguments as? [String: Any],
-              let title: String = args["title"] as? String,
-              let subtitle: String = args["subtitle"] as? String,
-              let searchManager {
+                let title: String = args["title"] as? String,
+                let subtitle: String = args["subtitle"] as? String,
+                let searchManager {
                 Task {
                     let coordinates: CLLocationCoordinate2D? = await searchManager.returnCoordinatesFromSearchResult(
-                      title: title, 
-                      subtitle: subtitle
+                        title: title, 
+                        subtitle: subtitle
                     )
                     result([
                         "name": "\(title), \(subtitle)",
@@ -60,8 +62,9 @@ public class SearchCompletionPlugin: NSObject, FlutterPlugin {
         }
     }
     
-    private func initializeSearchManager() {
-        searchManager = MapKitSearchCompletionManager()
+    private func initializeSearchManager(searchRegion: String) {
+        searchManager = MapKitSearchCompletionManager(region: MapKitRegionUtility()
+            .region(for: MapKitGeographicRegion.from(mapKitRegionCode: searchRegion) ?? .ukAndIreland))
         searchManager?.autoCompletePublisher
             .sink { [weak self] completions in
                 let results = completions.map { completion in
@@ -77,7 +80,7 @@ public class SearchCompletionPlugin: NSObject, FlutterPlugin {
     }
     
     private func sendSearchResults(_ results: [[String: Any]]) {
-      eventSink?(results)
+        eventSink?(results)
     }
 }
 

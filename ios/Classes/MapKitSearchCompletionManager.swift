@@ -1,4 +1,5 @@
 import Combine
+import os.log
 import MapKit
 
 protocol SearchCompletionManagerProtocol {
@@ -16,6 +17,7 @@ protocol AutoCompletedSearchResult: Hashable {
 final class MapKitSearchCompletionManager: NSObject, SearchCompletionManagerProtocol {
     
     var autoCompletePublisher: AnyPublisher<[any AutoCompletedSearchResult], Never>
+    
     var searchTerm: String {
         didSet {
             searchCompleter.queryFragment = searchTerm
@@ -25,22 +27,29 @@ final class MapKitSearchCompletionManager: NSObject, SearchCompletionManagerProt
     private let searchCompleter: MKLocalSearchCompleter
     private let autoCompleteSubject = PassthroughSubject<[any AutoCompletedSearchResult], Never>()
     private var autoCompleteResults: [MKLocalSearchCompletion] = []
+    private var region: MKCoordinateRegion?
 
     init(
+        region: MKCoordinateRegion? = nil,
         searchCompleter: MKLocalSearchCompleter = MKLocalSearchCompleter()
     ) {
         self.autoCompletePublisher = autoCompleteSubject.eraseToAnyPublisher()
+        self.region = region
         self.searchCompleter = searchCompleter
         self.searchCompleter.resultTypes = [.address, .pointOfInterest]
         self.searchTerm = ""
         super.init()
         
         self.searchCompleter.delegate = self
+        os_log("Search completion manager initialized with region: %@", log: .default, type: .debug, String(describing: region))
     }
     
     func returnCoordinatesFromSearchResult(title: String?, subtitle: String?) async -> CLLocationCoordinate2D?  {
         do {
             let searchRequest = MKLocalSearch.Request()
+            if let region {
+                searchRequest.region = region
+            }
             searchRequest.naturalLanguageQuery = "\(title ?? "") \(subtitle ?? "")"
             let search = MKLocalSearch(request: searchRequest)
             let result = try await search.start()
