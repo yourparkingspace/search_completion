@@ -31,8 +31,8 @@ public class SearchCompletionPlugin: NSObject, FlutterPlugin {
         switch call.method {
         case "initialize":
             let args = call.arguments as? [String: Any]
-            let searchRegion = args?["mapKitSearchRegionCode"] as? String?
-            initializeSearchManager(searchRegion: searchRegion)
+            let searchRegion = args?["mapKitSearchRegionCode"] as? String
+            initializeSearchManager(searchRegion: searchRegion ?? "")
             result(nil)
         case "updateSearchTerm":
             if let args = call.arguments as? [String: Any],
@@ -62,8 +62,9 @@ public class SearchCompletionPlugin: NSObject, FlutterPlugin {
         }
     }
     
-    private func initializeSearchManager(searchRegion: String? = nil) {
-        searchManager = MapKitSearchCompletionManager(region: MapKitGeographicRegion.searchRegion(from: searchRegion))
+    private func initializeSearchManager(searchRegion: String) {
+        searchManager = MapKitSearchCompletionManager(region: MapKitRegionUtility()
+            .region(for: MapKitGeographicRegion.from(mapKitRegionCode: searchRegion) ?? .ukAndIreland))
         searchManager?.autoCompletePublisher
             .sink { [weak self] completions in
                 let results = completions.map { completion in
