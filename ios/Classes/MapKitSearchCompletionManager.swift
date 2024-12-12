@@ -2,6 +2,7 @@ import Combine
 import MapKit
 
 protocol SearchCompletionManagerProtocol {
+    var region: MKCoordinateRegion? { get set }
     var searchTerm: String { get set }
     var autoCompletePublisher: AnyPublisher<[any AutoCompletedSearchResult], Never> { get }
     func returnCoordinatesFromSearchResult(title: String?, subtitle: String?) async -> CLLocationCoordinate2D? 
@@ -16,6 +17,7 @@ protocol AutoCompletedSearchResult: Hashable {
 final class MapKitSearchCompletionManager: NSObject, SearchCompletionManagerProtocol {
     
     var autoCompletePublisher: AnyPublisher<[any AutoCompletedSearchResult], Never>
+    var region: MKCoordinateRegion?
     var searchTerm: String {
         didSet {
             searchCompleter.queryFragment = searchTerm
@@ -27,9 +29,11 @@ final class MapKitSearchCompletionManager: NSObject, SearchCompletionManagerProt
     private var autoCompleteResults: [MKLocalSearchCompletion] = []
 
     init(
+        region: MKCoordinateRegion? = nil,
         searchCompleter: MKLocalSearchCompleter = MKLocalSearchCompleter()
     ) {
         self.autoCompletePublisher = autoCompleteSubject.eraseToAnyPublisher()
+        self.region = region
         self.searchCompleter = searchCompleter
         self.searchCompleter.resultTypes = [.address, .pointOfInterest]
         self.searchTerm = ""
@@ -41,6 +45,9 @@ final class MapKitSearchCompletionManager: NSObject, SearchCompletionManagerProt
     func returnCoordinatesFromSearchResult(title: String?, subtitle: String?) async -> CLLocationCoordinate2D?  {
         do {
             let searchRequest = MKLocalSearch.Request()
+            if let region {
+                searchRequest.region = region
+            }
             searchRequest.naturalLanguageQuery = "\(title ?? "") \(subtitle ?? "")"
             let search = MKLocalSearch(request: searchRequest)
             let result = try await search.start()
