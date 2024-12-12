@@ -79,13 +79,13 @@ struct MapKitRegionUtility {
 // MARK: - MKCoordinateRegion Extension
 extension MKCoordinateRegion {
     init?(coordinates: [CLLocationCoordinate2D]) {
-        let primeRegion = MKCoordinateRegion.region(
+        let primeRegion = MKCoordinateRegion.mapKitRegion(
             for: coordinates,
             transform: { $0 },
             inverseTransform: { $0 }
         )
         
-        let transformedRegion = MKCoordinateRegion.region(
+        let transformedRegion = MKCoordinateRegion.mapKitRegion(
             for: coordinates,
             transform: Self.transform,
             inverseTransform: Self.inverseTransform
